@@ -46,6 +46,7 @@ button:not(#memberList button):not(#songList button) {
   border-radius: 8px;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 /* メンバー・曲リスト */
@@ -99,4 +100,16 @@ button:not(#memberList button):not(#songList button) {
 #setlist p {
   margin: 4px 0;
   font-weight: bold;
+}
+
+/* 固定位置ラベル控えめ */
+.song label.posLabel {
+  font-size: 12px;
+  margin-right: 6px;
+  color: #666;
+}
+.song input.posInput {
+  width: 50px;
+  margin-right: 8px;
+  padding: 2px 4px;
 }

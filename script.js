@@ -67,7 +67,7 @@ function renderSongsList() {
   });
 }
 
-// 曲ごとのメンバー選択（アコーディオン＋固定位置入力）
+// 曲ごとのメンバー選択（アコーディオン＋控えめ固定位置）
 function renderSongs() {
   const container = document.getElementById("songs");
   container.innerHTML = "";
@@ -76,33 +76,30 @@ function renderSongs() {
     const div = document.createElement("div");
     div.className = "song";
 
-    // 固定位置入力
-    const posInput = document.createElement("input");
-    posInput.type = "number";
-    posInput.min = 1;
-    posInput.placeholder = "固定位置";
-    posInput.value = assignments[song + "_pos"] || "";
-    posInput.style.width = "60px";
-    posInput.style.marginRight = "8px";
-    posInput.onchange = () => {
-      const val = parseInt(posInput.value);
-      if (!isNaN(val) && val > 0) {
-        assignments[song + "_pos"] = val;
-      } else {
-        delete assignments[song + "_pos"];
-      }
-    };
-    div.appendChild(posInput);
-
-    // 曲名
-    const title = document.createElement("h3");
-    title.textContent = song;
-    div.appendChild(title);
-
     // メンバー選択欄
     const memberDiv = document.createElement("div");
     memberDiv.style.display = "none";
     memberDiv.style.marginTop = "8px";
+
+    // 固定位置入力（控えめ）
+    const posLabel = document.createElement("label");
+    posLabel.className = "posLabel";
+    posLabel.textContent = "位置固定:";
+
+    const posInput = document.createElement("input");
+    posInput.className = "posInput";
+    posInput.type = "number";
+    posInput.min = 1;
+    posInput.placeholder = "";
+    posInput.value = assignments[song + "_pos"] || "";
+    posInput.onchange = () => {
+      const val = parseInt(posInput.value);
+      if (!isNaN(val) && val > 0) assignments[song + "_pos"] = val;
+      else delete assignments[song + "_pos"];
+    };
+
+    memberDiv.appendChild(posLabel);
+    memberDiv.appendChild(posInput);
 
     let temp = new Set(assignments[song] || []);
 
@@ -136,6 +133,9 @@ function renderSongs() {
     div.appendChild(memberDiv);
 
     // 曲名クリックで開閉
+    const title = document.createElement("h3");
+    title.textContent = song;
+    div.insertBefore(title, memberDiv);
     title.onclick = () => {
       memberDiv.style.display = memberDiv.style.display === "none" ? "flex" : "none";
     };
@@ -162,11 +162,11 @@ function generateSetlist() {
   let remaining = [...songs];
   let result = [];
 
-  // まず固定位置の曲を配置
+  // 固定位置の曲を先に配置
   remaining = remaining.filter(song => {
     const pos = assignments[song + "_pos"];
     if (pos) {
-      result[pos - 1] = song; // 配列は0始まり
+      result[pos - 1] = song; 
       return false;
     }
     return true;
