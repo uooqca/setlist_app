@@ -46,18 +46,7 @@ function renderMembers() {
   });
 }
 
-// 🔥 4曲空けルール（誰か1人でも被ったらNG）
-function canAssign(songIndex, member) {
-  for (let i = songIndex - 1; i >= 0 && i > songIndex - 5; i--) {
-    const assigned = assignments[songs[i]] || [];
-    if (assigned.includes(member)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-// 曲ごとのUI
+// 曲ごとのUI（メンバー複数選択）
 function renderSongs() {
   const container = document.getElementById("songs");
   container.innerHTML = "";
@@ -67,7 +56,7 @@ function renderSongs() {
     return;
   }
 
-  songs.forEach((song, index) => {
+  songs.forEach(song => {
     const div = document.createElement("div");
     div.className = "song";
 
@@ -75,7 +64,6 @@ function renderSongs() {
     title.textContent = song;
     div.appendChild(title);
 
-    // 一時選択（確定前）
     let tempSelected = new Set(assignments[song] || []);
 
     members.forEach(member => {
@@ -83,16 +71,9 @@ function renderSongs() {
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
-      checkbox.value = member;
 
-      // すでに選択されてる場合
       if (tempSelected.has(member)) {
         checkbox.checked = true;
-      }
-
-      // 4曲ルールチェック
-      if (!canAssign(index, member)) {
-        checkbox.disabled = true;
       }
 
       checkbox.addEventListener("change", () => {
@@ -108,25 +89,75 @@ function renderSongs() {
       div.appendChild(label);
     });
 
-    // 決定ボタン✨
-    const confirmBtn = document.createElement("button");
-    confirmBtn.textContent = "決定";
+    const btn = document.createElement("button");
+    btn.textContent = "決定";
 
-    confirmBtn.addEventListener("click", () => {
+    btn.addEventListener("click", () => {
       assignments[song] = Array.from(tempSelected);
-      renderSongs();   // 制限更新
-      renderResult();  // 結果更新
+      renderResult();
     });
 
     div.appendChild(document.createElement("br"));
-    div.appendChild(confirmBtn);
+    div.appendChild(btn);
 
     container.appendChild(div);
   });
 }
 
-// 結果表示
+// 🔥 セトリ自動生成（4曲空け考慮）
+function generateSetlist() {
+  let remaining = [...songs];
+  let result = [];
+
+  while (remaining.length > 0) {
+    let placed = false;
+
+    for (let i = 0; i < remaining.length; i++) {
+      const song = remaining[i];
+      const membersOfSong = assignments[song] || [];
+
+      let ok = true;
+
+      // 直前4曲チェック
+      for (let j = result.length - 1; j >= 0 && j > result.length - 5; j--) {
+        const prevSong = result[j];
+        const prevMembers = assignments[prevSong] || [];
+
+        if (membersOfSong.some(m => prevMembers.includes(m))) {
+          ok = false;
+          break;
+        }
+      }
+
+      if (ok) {
+        result.push(song);
+        remaining.splice(i, 1);
+        placed = true;
+        break;
+      }
+    }
+
+    // 無理なら強引に入れる
+    if (!placed) {
+      result.push(remaining[0]);
+      remaining.shift();
+    }
+  }
+
+  return result;
+}
+
+// 結果表示（曲順のみ✨）
 function renderResult() {
-  document.getElementById("result").textContent =
-    JSON.stringify(assignments, null, 2);
+  const resultEl = document.getElementById("result");
+
+  const ordered = generateSetlist();
+
+  let text = "🎤 セトリ\n\n";
+
+  ordered.forEach((song, index) => {
+    text += `${index + 1}. ${song}\n`;
+  });
+
+  resultEl.textContent = text;
 }

@@ -2,34 +2,30 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>セトリ役決め</title>
+  <title>セトリ作成</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <h1>🎤 セトリ役決め</h1>
+  <h1>🎤 セトリ作成</h1>
 
-  <!-- メンバー -->
-  <h2>メンバー登録</h2>
-  <input id="memberInput" placeholder="名前入力">
+  <h2>メンバー</h2>
+  <input id="memberInput" placeholder="名前">
   <button id="addMemberBtn">追加</button>
   <ul id="memberList"></ul>
 
-  <hr>
-
-  <!-- 曲 -->
-  <h2>曲追加</h2>
-  <input id="songInput" placeholder="曲名入力">
+  <h2>曲</h2>
+  <input id="songInput" placeholder="曲名">
   <button id="addSongBtn">追加</button>
 
-  <h2>曲のメンバー</h2>
+  <h2>メンバー選択</h2>
   <div id="songs"></div>
 
-  <hr>
+  <button id="generateBtn">セトリ生成</button>
 
-  <h2>結果</h2>
-  <pre id="result"></pre>
+  <h2>セトリ</h2>
+  <div id="setlist"></div>
 
   <script src="script.js"></script>
 </body>
