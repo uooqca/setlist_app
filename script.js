@@ -1,60 +1,77 @@
-// データ
 let members = [];
 let songs = [];
 let assignments = {};
 
-// 入力
 const memberInput = document.getElementById("memberInput");
 const songInput = document.getElementById("songInput");
 
-// ボタン
-document.getElementById("addMemberBtn").addEventListener("click", addMember);
-document.getElementById("addSongBtn").addEventListener("click", addSong);
-
-// メンバー追加
-function addMember() {
+document.getElementById("addMemberBtn").onclick = () => {
   const name = memberInput.value.trim();
   if (!name) return;
-
   members.push(name);
   memberInput.value = "";
-
   renderMembers();
   renderSongs();
-}
+};
 
-// 曲追加
-function addSong() {
+document.getElementById("addSongBtn").onclick = () => {
   const name = songInput.value.trim();
   if (!name) return;
-
   songs.push(name);
   songInput.value = "";
-
   renderSongs();
-}
+  renderSongsList();
+};
 
-// メンバー表示
+document.getElementById("generateBtn").onclick = generateAndShow;
+
+// メンバーリスト表示（削除）
 function renderMembers() {
   const list = document.getElementById("memberList");
   list.innerHTML = "";
-
-  members.forEach(m => {
+  members.forEach((m, idx) => {
     const li = document.createElement("li");
-    li.textContent = m;
+    li.textContent = m + " ";
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "削除";
+    delBtn.onclick = () => {
+      members.splice(idx, 1);
+      renderMembers();
+      renderSongs();
+    };
+
+    li.appendChild(delBtn);
     list.appendChild(li);
   });
 }
 
-// 曲ごとのUI（メンバー複数選択）
+// 曲リスト表示（削除）
+function renderSongsList() {
+  const list = document.getElementById("songList");
+  list.innerHTML = "";
+  songs.forEach((s, idx) => {
+    const li = document.createElement("li");
+    li.textContent = s + " ";
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "削除";
+    delBtn.onclick = () => {
+      songs.splice(idx, 1);
+      delete assignments[s];
+      renderSongs();
+      renderSongsList();
+    };
+
+    li.appendChild(delBtn);
+    list.appendChild(li);
+  });
+}
+
+// 曲ごとの選択
 function renderSongs() {
   const container = document.getElementById("songs");
   container.innerHTML = "";
-
-  if (members.length === 0 || songs.length === 0) {
-    container.innerHTML = "<p>⚠️ メンバーと曲を追加してね！</p>";
-    return;
-  }
 
   songs.forEach(song => {
     const div = document.createElement("div");
@@ -64,7 +81,7 @@ function renderSongs() {
     title.textContent = song;
     div.appendChild(title);
 
-    let tempSelected = new Set(assignments[song] || []);
+    let temp = new Set(assignments[song] || []);
 
     members.forEach(member => {
       const label = document.createElement("label");
@@ -72,39 +89,43 @@ function renderSongs() {
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
 
-      if (tempSelected.has(member)) {
-        checkbox.checked = true;
-      }
+      if (temp.has(member)) checkbox.checked = true;
 
-      checkbox.addEventListener("change", () => {
-        if (checkbox.checked) {
-          tempSelected.add(member);
-        } else {
-          tempSelected.delete(member);
-        }
-      });
+      checkbox.onchange = () => {
+        if (checkbox.checked) temp.add(member);
+        else temp.delete(member);
+      };
 
       label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(member));
+      label.append(member);
       div.appendChild(label);
     });
 
     const btn = document.createElement("button");
     btn.textContent = "決定";
+    btn.onclick = () => {
+      assignments[song] = Array.from(temp);
+    };
 
-    btn.addEventListener("click", () => {
-      assignments[song] = Array.from(tempSelected);
-      renderResult();
-    });
-
-    div.appendChild(document.createElement("br"));
     div.appendChild(btn);
-
     container.appendChild(div);
   });
 }
 
-// 🔥 セトリ自動生成（4曲空け考慮）
+// セトリ生成＋表示
+function generateAndShow() {
+  const result = generateSetlist();
+  const container = document.getElementById("setlist");
+
+  container.innerHTML = "";
+  result.forEach((song, i) => {
+    const p = document.createElement("p");
+    p.textContent = `${i + 1}. ${song}`;
+    container.appendChild(p);
+  });
+}
+
+// 並び替えロジック（4曲空け）
 function generateSetlist() {
   let remaining = [...songs];
   let result = [];
@@ -118,10 +139,9 @@ function generateSetlist() {
 
       let ok = true;
 
-      // 直前4曲チェック
       for (let j = result.length - 1; j >= 0 && j > result.length - 5; j--) {
-        const prevSong = result[j];
-        const prevMembers = assignments[prevSong] || [];
+        const prev = result[j];
+        const prevMembers = assignments[prev] || [];
 
         if (membersOfSong.some(m => prevMembers.includes(m))) {
           ok = false;
@@ -137,27 +157,10 @@ function generateSetlist() {
       }
     }
 
-    // 無理なら強引に入れる
     if (!placed) {
-      result.push(remaining[0]);
-      remaining.shift();
+      result.push(remaining.shift());
     }
   }
 
   return result;
-}
-
-// 結果表示（曲順のみ✨）
-function renderResult() {
-  const resultEl = document.getElementById("result");
-
-  const ordered = generateSetlist();
-
-  let text = "🎤 セトリ\n\n";
-
-  ordered.forEach((song, index) => {
-    text += `${index + 1}. ${song}\n`;
-  });
-
-  resultEl.textContent = text;
 }
