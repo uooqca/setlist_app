@@ -4,13 +4,11 @@ body {
   background: #fff5fa;
 }
 
-/* タイトル */
 h1 {
   text-align: center;
   color: #ff4d94;
 }
 
-/* 入力欄 */
 input {
   width: 70%;
   padding: 12px;
@@ -19,7 +17,6 @@ input {
   border: 1px solid #ccc;
 }
 
-/* 決定・追加・生成ボタン（大きくて押しやすい） */
 button:not(#memberList button):not(#songList button) {
   width: 100%;
   padding: 14px;
@@ -31,18 +28,27 @@ button:not(#memberList button):not(#songList button) {
   font-size: 18px;
 }
 
-/* 曲ごとのメンバー選択肢（横並び＋折り返し） */
-.song label {
-  display: inline-flex;
-  align-items: center;
-  margin: 4px 8px;
-  padding: 2px 6px;
-  background: #ffe6f0;
+/* 曲名クリックで開閉 */
+.song h3 {
+  background: #ffb6c1;
+  padding: 8px;
   border-radius: 8px;
-  font-size: 14px;
+  margin: 4px 0;
+  cursor: pointer;
+  user-select: none;
+  color: white;
 }
 
-/* メンバー・曲リスト（横並び＋折り返し） */
+/* メンバー選択欄 */
+.song div {
+  padding: 6px 8px;
+  background: #ffe6f0;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* メンバー・曲リスト */
 #memberList, #songList {
   display: flex;
   flex-wrap: wrap;
@@ -51,7 +57,6 @@ button:not(#memberList button):not(#songList button) {
   list-style: none;
 }
 
-/* メンバー・曲リストの各アイテム */
 #memberList li, #songList li {
   background: #fff0f5;
   padding: 4px 8px;
@@ -61,23 +66,33 @@ button:not(#memberList button):not(#songList button) {
   align-items: center;
 }
 
-/* 削除ボタン（小さく控えめ） */
+/* 削除ボタン控えめ */
 #memberList button,
 #songList button {
   width: auto;
   padding: 2px 6px;
   margin-left: 6px;
   font-size: 12px;
-  background: #ffb3c6; /* 薄めのピンク */
+  background: #ffb3c6;
   color: white;
   border-radius: 6px;
   cursor: pointer;
 }
 
-/* 削除ボタンの文字は×だけ */
 #memberList button::before,
 #songList button::before {
   content: "×";
+}
+
+/* メンバー選択ラベル（横並び＋折り返し） */
+.song label {
+  display: inline-flex;
+  align-items: center;
+  margin: 4px 8px;
+  padding: 2px 6px;
+  background: #ffe6f0;
+  border-radius: 8px;
+  font-size: 14px;
 }
 
 /* セトリ表示 */

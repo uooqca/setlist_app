@@ -25,7 +25,7 @@ document.getElementById("addSongBtn").onclick = () => {
 
 document.getElementById("generateBtn").onclick = generateAndShow;
 
-// メンバーリスト表示（削除）
+// メンバーリスト表示（削除ボタンあり）
 function renderMembers() {
   const list = document.getElementById("memberList");
   list.innerHTML = "";
@@ -34,7 +34,6 @@ function renderMembers() {
     li.textContent = m + " ";
 
     const delBtn = document.createElement("button");
-    delBtn.textContent = "削除";
     delBtn.onclick = () => {
       members.splice(idx, 1);
       renderMembers();
@@ -46,7 +45,7 @@ function renderMembers() {
   });
 }
 
-// 曲リスト表示（削除）
+// 曲リスト表示（削除ボタンあり）
 function renderSongsList() {
   const list = document.getElementById("songList");
   list.innerHTML = "";
@@ -55,7 +54,6 @@ function renderSongsList() {
     li.textContent = s + " ";
 
     const delBtn = document.createElement("button");
-    delBtn.textContent = "削除";
     delBtn.onclick = () => {
       songs.splice(idx, 1);
       delete assignments[s];
@@ -68,7 +66,7 @@ function renderSongsList() {
   });
 }
 
-// 曲ごとの選択
+// 曲ごとのメンバー選択（アコーディオン）
 function renderSongs() {
   const container = document.getElementById("songs");
   container.innerHTML = "";
@@ -81,6 +79,9 @@ function renderSongs() {
     title.textContent = song;
     div.appendChild(title);
 
+    const memberDiv = document.createElement("div");
+    memberDiv.style.display = "none";
+
     let temp = new Set(assignments[song] || []);
 
     members.forEach(member => {
@@ -88,7 +89,6 @@ function renderSongs() {
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
-
       if (temp.has(member)) checkbox.checked = true;
 
       checkbox.onchange = () => {
@@ -98,26 +98,36 @@ function renderSongs() {
 
       label.appendChild(checkbox);
       label.append(member);
-      div.appendChild(label);
+      memberDiv.appendChild(label);
     });
 
     const btn = document.createElement("button");
     btn.textContent = "決定";
     btn.onclick = () => {
       assignments[song] = Array.from(temp);
+      memberDiv.style.display = "none"; // 決定で閉じる
     };
 
-    div.appendChild(btn);
+    memberDiv.appendChild(document.createElement("br"));
+    memberDiv.appendChild(btn);
+
+    div.appendChild(memberDiv);
+
+    // 曲名クリックで開閉
+    title.onclick = () => {
+      memberDiv.style.display = memberDiv.style.display === "none" ? "flex" : "none";
+    };
+
     container.appendChild(div);
   });
 }
 
-// セトリ生成＋表示
+// セトリ生成＆表示
 function generateAndShow() {
   const result = generateSetlist();
   const container = document.getElementById("setlist");
-
   container.innerHTML = "";
+
   result.forEach((song, i) => {
     const p = document.createElement("p");
     p.textContent = `${i + 1}. ${song}`;
