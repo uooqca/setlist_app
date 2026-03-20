@@ -1,10 +1,13 @@
+// データ
 let members = [];
 let songs = [];
 let assignments = {};
 
+// 入力
 const memberInput = document.getElementById("memberInput");
 const songInput = document.getElementById("songInput");
 
+// ボタン
 document.getElementById("addMemberBtn").addEventListener("click", addMember);
 document.getElementById("addSongBtn").addEventListener("click", addSong);
 
@@ -15,6 +18,7 @@ function addMember() {
 
   members.push(name);
   memberInput.value = "";
+
   renderMembers();
   renderSongs();
 }
@@ -26,6 +30,7 @@ function addSong() {
 
   songs.push(name);
   songInput.value = "";
+
   renderSongs();
 }
 
@@ -41,10 +46,11 @@ function renderMembers() {
   });
 }
 
-// 4曲空けチェック
+// 🔥 4曲空けルール（誰か1人でも被ったらNG）
 function canAssign(songIndex, member) {
   for (let i = songIndex - 1; i >= 0 && i > songIndex - 5; i--) {
-    if (assignments[songs[i]] === member) {
+    const assigned = assignments[songs[i]] || [];
+    if (assigned.includes(member)) {
       return false;
     }
   }
@@ -69,30 +75,51 @@ function renderSongs() {
     title.textContent = song;
     div.appendChild(title);
 
+    // 一時選択（確定前）
+    let tempSelected = new Set(assignments[song] || []);
+
     members.forEach(member => {
       const label = document.createElement("label");
 
-      const radio = document.createElement("input");
-      radio.type = "radio";
-      radio.name = song;
-      radio.value = member;
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = member;
 
-      // 制限チェック🔥
-      if (!canAssign(index, member)) {
-        radio.disabled = true;
+      // すでに選択されてる場合
+      if (tempSelected.has(member)) {
+        checkbox.checked = true;
       }
 
-      radio.addEventListener("change", () => {
-        assignments[song] = member;
-        renderSongs(); // 再描画で制限更新
-        renderResult();
+      // 4曲ルールチェック
+      if (!canAssign(index, member)) {
+        checkbox.disabled = true;
+      }
+
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) {
+          tempSelected.add(member);
+        } else {
+          tempSelected.delete(member);
+        }
       });
 
-      label.appendChild(radio);
+      label.appendChild(checkbox);
       label.appendChild(document.createTextNode(member));
-
       div.appendChild(label);
     });
+
+    // 決定ボタン✨
+    const confirmBtn = document.createElement("button");
+    confirmBtn.textContent = "決定";
+
+    confirmBtn.addEventListener("click", () => {
+      assignments[song] = Array.from(tempSelected);
+      renderSongs();   // 制限更新
+      renderResult();  // 結果更新
+    });
+
+    div.appendChild(document.createElement("br"));
+    div.appendChild(confirmBtn);
 
     container.appendChild(div);
   });
