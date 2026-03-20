@@ -57,6 +57,7 @@ function renderSongsList() {
     delBtn.onclick = () => {
       songs.splice(idx, 1);
       delete assignments[s];
+      delete assignments[s + "_pos"];
       renderSongs();
       renderSongsList();
     };
@@ -66,7 +67,7 @@ function renderSongsList() {
   });
 }
 
-// 曲ごとのメンバー選択（アコーディオン）
+// 曲ごとのメンバー選択（アコーディオン＋固定位置入力）
 function renderSongs() {
   const container = document.getElementById("songs");
   container.innerHTML = "";
@@ -75,12 +76,33 @@ function renderSongs() {
     const div = document.createElement("div");
     div.className = "song";
 
+    // 固定位置入力
+    const posInput = document.createElement("input");
+    posInput.type = "number";
+    posInput.min = 1;
+    posInput.placeholder = "固定位置";
+    posInput.value = assignments[song + "_pos"] || "";
+    posInput.style.width = "60px";
+    posInput.style.marginRight = "8px";
+    posInput.onchange = () => {
+      const val = parseInt(posInput.value);
+      if (!isNaN(val) && val > 0) {
+        assignments[song + "_pos"] = val;
+      } else {
+        delete assignments[song + "_pos"];
+      }
+    };
+    div.appendChild(posInput);
+
+    // 曲名
     const title = document.createElement("h3");
     title.textContent = song;
     div.appendChild(title);
 
+    // メンバー選択欄
     const memberDiv = document.createElement("div");
     memberDiv.style.display = "none";
+    memberDiv.style.marginTop = "8px";
 
     let temp = new Set(assignments[song] || []);
 
@@ -135,10 +157,20 @@ function generateAndShow() {
   });
 }
 
-// 並び替えロジック（4曲空け）
+// 並び替えロジック（4曲空け＋固定位置対応）
 function generateSetlist() {
   let remaining = [...songs];
   let result = [];
+
+  // まず固定位置の曲を配置
+  remaining = remaining.filter(song => {
+    const pos = assignments[song + "_pos"];
+    if (pos) {
+      result[pos - 1] = song; // 配列は0始まり
+      return false;
+    }
+    return true;
+  });
 
   while (remaining.length > 0) {
     let placed = false;
@@ -148,11 +180,10 @@ function generateSetlist() {
       const membersOfSong = assignments[song] || [];
 
       let ok = true;
-
       for (let j = result.length - 1; j >= 0 && j > result.length - 5; j--) {
         const prev = result[j];
+        if (!prev) continue;
         const prevMembers = assignments[prev] || [];
-
         if (membersOfSong.some(m => prevMembers.includes(m))) {
           ok = false;
           break;
@@ -160,7 +191,10 @@ function generateSetlist() {
       }
 
       if (ok) {
-        result.push(song);
+        let idx = result.findIndex(r => r === undefined);
+        if (idx === -1) idx = result.length;
+        result[idx] = song;
+
         remaining.splice(i, 1);
         placed = true;
         break;
